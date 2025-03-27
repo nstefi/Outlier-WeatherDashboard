@@ -169,16 +169,7 @@ if st.session_state.demo_mode:
     </div>
     """, unsafe_allow_html=True)
     
-# Note about free API plan limitations
-st.info("""
-**Free API Plan Information**  
-This dashboard uses the OpenWeatherMap free plan which includes:
-- Current weather data
-- 5-day forecast with 3-hour step
-- Limited to 60 calls per minute
-
-The data is refreshed each time you search.
-""")
+# Removed free API plan information block
 
 # Sidebar for controls
 with st.sidebar:
@@ -223,15 +214,7 @@ with st.sidebar:
             # Force refresh with new mode
             st.rerun()
     
-    # Add information about API key activation
-    st.info("""
-    **🔑 About OpenWeather API Keys**
-    
-    New API keys can take up to 2 hours to activate.
-    If you're experiencing "Invalid API key" errors, please wait and try again later.
-    
-    Test your API key with the button in the "API Key Status" section.
-    """)
+    # Removed information about API key activation
 
 # Main content
 if search_button or 'weather_data' not in st.session_state:

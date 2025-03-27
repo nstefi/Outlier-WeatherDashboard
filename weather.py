@@ -149,7 +149,6 @@ class WeatherAPI:
                 # Check if successful
                 if response.status_code == 200:
                     st.sidebar.success("✅ API key is valid and active!")
-                    st.sidebar.json(response.json(), expanded=False)
                     return True
                 elif response.status_code == 401:
                     error_data = response.json()
@@ -167,7 +166,6 @@ class WeatherAPI:
                     return False
                 else:
                     st.sidebar.warning(f"⚠️ Unexpected response (Code {response.status_code})")
-                    st.sidebar.json(response.json(), expanded=False)
                     return False
                     
             except Exception as e:
