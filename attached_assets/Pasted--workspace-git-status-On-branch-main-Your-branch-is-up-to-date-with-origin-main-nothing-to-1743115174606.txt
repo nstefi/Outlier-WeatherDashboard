@@ -1,0 +1,52 @@
+~/workspace$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+~/workspace$ cd /home/runner/workspace
+~/workspace$ ls
+app.py  attached_assets  generated-icon.png  __pycache__  pyproject.toml  replit.nix  utils.py  uv.lock  weather.py
+~/workspace$ git add -A
+~/workspace$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+~/workspace$ git commit -m "Initial commit of Weather Dashboard"
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+~/workspace$ git push -u origin main
+branch 'main' set up to track 'origin/main'.
+Everything up-to-date
+~/workspace$ ls -la
+total 932
+drwxr-xr-x 1 runner runner    294 Mar 27 21:32 .
+drwxrwxrwx 1 runner runner     46 Mar 27 21:01 ..
+-rw-r--r-- 1 runner runner  17432 Mar 27 21:15 app.py
+drwxr-xr-x 1 runner runner    138 Mar 27 22:36 attached_assets
+drwxr-xr-x 1 runner runner     22 Mar 27 20:54 .cache
+-rw-r--r-- 1 runner runner 798199 Mar 27 20:47 generated-icon.png
+drwxr-xr-x 1 runner runner    164 Mar 27 22:38 .git
+drwxr-xr-x 1 runner runner     10 Mar 27 20:52 .local
+drwxr-xr-x 1 runner runner     88 Mar 27 21:15 __pycache__
+-rw-r--r-- 1 runner runner    257 Mar 27 20:54 pyproject.toml
+drwxr-xr-x 1 runner runner    102 Mar 27 20:52 .pythonlibs
+-rw-r--r-- 1 runner runner    734 Mar 27 20:54 .replit
+-rw-r--r-- 1 runner runner    233 Mar 27 20:54 replit.nix
+drwxr-xr-x 1 runner runner     22 Mar 27 20:53 .streamlit
+drwxr-xr-x 1 runner runner     20 Mar 27 21:10 .upm
+-rw-r--r-- 1 runner runner   3296 Mar 27 20:53 utils.py
+-rw-r--r-- 1 runner runner 108769 Mar 27 20:54 uv.lock
+-rw-r--r-- 1 runner runner   7257 Mar 27 21:13 weather.py
+~/workspace$ git add -A .
+~/workspace$ git commit -m "Adding Weather Dashboard files"
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+~/workspace$ git push -u origin main
+branch 'main' set up to track 'origin/main'.
+Everything up-to-date
+~/workspace$ 
