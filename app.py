@@ -236,9 +236,15 @@ with st.sidebar:
     # Show last update time
     st.write(f"Last updated: {st.session_state.last_update.strftime('%Y-%m-%d %H:%M:%S')}")
     
+    # Add a small space
+    st.write("")
+    
     # Generate and display QR code for mobile access
     qr_img, qr_url = generate_qr_code()
-    st.markdown("<p style='color: #FF4B4B; margin-top: 15px; margin-bottom: 5px; font-weight: 500;'>Scan QR code below to check the app on your mobile:</p>", unsafe_allow_html=True)
+    st.write("Scan QR code below to check the app on your mobile:")
+    
+    # Add a small space before the QR code
+    st.write("")
     st.image(qr_img, width=150)
     
     # Demo mode option - only show if API is not initialized
