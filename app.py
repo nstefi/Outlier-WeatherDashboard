@@ -4,6 +4,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from PIL import Image
 import pandas as pd
+import random
+import os
 
 from weather import WeatherAPI
 from utils import get_weather_icon, temperature_color, wind_direction_icon
@@ -20,12 +22,163 @@ if 'unit' not in st.session_state:
     st.session_state.unit = 'metric'  # Default to Celsius
 if 'last_update' not in st.session_state:
     st.session_state.last_update = datetime.datetime.now()
+if 'demo_mode' not in st.session_state:
+    st.session_state.demo_mode = False
 
-# Initialize WeatherAPI with OpenWeather API key from environment
-weather_api = WeatherAPI()
+# Function to load demo data
+def get_demo_weather(city="London", units="metric"):
+    """
+    Generate sample weather data for demonstration purposes when API key is not working
+    """
+    # Sample data structure for current weather
+    temp_base = 18.5 if units == "metric" else 65.3
+    temp_variation = random.uniform(-3, 3)
+    
+    sample_current = {
+        "coord": {"lon": -0.1257, "lat": 51.5085},
+        "weather": [{"id": 801, "main": "Clouds", "description": "few clouds", "icon": "02d"}],
+        "base": "stations",
+        "main": {
+            "temp": temp_base + temp_variation,
+            "feels_like": temp_base + temp_variation - 0.6,
+            "temp_min": temp_base + temp_variation - 2,
+            "temp_max": temp_base + temp_variation + 2,
+            "pressure": 1015,
+            "humidity": 68
+        },
+        "visibility": 10000,
+        "wind": {"speed": 4.12 if units == "metric" else 9.22, "deg": 240, "gust": 8.49},
+        "clouds": {"all": 20},
+        "dt": int(datetime.datetime.now().timestamp()),
+        "sys": {
+            "type": 2,
+            "id": 2075535,
+            "country": "GB",
+            "sunrise": int((datetime.datetime.now().replace(hour=5, minute=30)).timestamp()),
+            "sunset": int((datetime.datetime.now().replace(hour=20, minute=30)).timestamp())
+        },
+        "timezone": 3600,
+        "id": 2643743,
+        "name": city,
+        "cod": 200
+    }
+    
+    return sample_current
+
+def get_demo_forecast(city="London", units="metric"):
+    """
+    Generate sample forecast data for demonstration purposes
+    """
+    # Sample forecast data structure
+    sample_forecast = {
+        "cod": "200",
+        "message": 0,
+        "cnt": 40,
+        "list": [],
+        "city": {
+            "id": 2643743,
+            "name": city,
+            "coord": {"lat": 51.5085, "lon": -0.1257},
+            "country": "GB",
+            "population": 1000000,
+            "timezone": 3600,
+            "sunrise": int((datetime.datetime.now().replace(hour=5, minute=30)).timestamp()),
+            "sunset": int((datetime.datetime.now().replace(hour=20, minute=30)).timestamp())
+        }
+    }
+    
+    # Generate forecast data for next 5 days (40 entries, every 3 hours)
+    base_temp = 18.5 if units == "metric" else 65.3
+    current_time = datetime.datetime.now()
+    
+    for i in range(40):
+        forecast_time = current_time + datetime.timedelta(hours=i*3)
+        hour_of_day = forecast_time.hour
+        
+        # Temperature varies by time of day
+        temp_offset = -2 if hour_of_day < 6 else (3 if 10 <= hour_of_day <= 16 else 0)
+        temp = base_temp + temp_offset
+        
+        # Add some random variation
+        temp_variation = random.uniform(-1.5, 1.5)
+        temp += temp_variation
+        
+        # Icon varies by time of day
+        if hour_of_day >= 20 or hour_of_day < 6:
+            icon = "01n"  # night
+        else:
+            icons = ["01d", "02d", "03d", "04d"]
+            icon = icons[random.randint(0, len(icons)-1)]
+            
+        entry = {
+            "dt": int(forecast_time.timestamp()),
+            "main": {
+                "temp": temp,
+                "feels_like": temp - 0.6,
+                "temp_min": temp - 1.7,
+                "temp_max": temp + 1.2,
+                "pressure": 1015 + random.randint(-3, 3),
+                "humidity": 68 + random.randint(-10, 10),
+            },
+            "weather": [
+                {
+                    "id": 800,
+                    "main": "Clear" if "01" in icon else "Clouds",
+                    "description": "clear sky" if "01" in icon else "few clouds",
+                    "icon": icon
+                }
+            ],
+            "clouds": {"all": 0 if "01" in icon else 20 + random.randint(0, 80)},
+            "wind": {
+                "speed": 4.12 + random.uniform(-2, 2),
+                "deg": random.randint(0, 360)
+            },
+            "visibility": 10000,
+            "pop": random.uniform(0, 1) if random.random() > 0.7 else 0,
+            "sys": {"pod": "n" if hour_of_day >= 20 or hour_of_day < 6 else "d"},
+            "dt_txt": forecast_time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        sample_forecast["list"].append(entry)
+    
+    return sample_forecast
+
+# Try to initialize WeatherAPI with OpenWeather API key from environment
+try:
+    weather_api = WeatherAPI()
+    api_initialized = True
+except Exception as e:
+    st.error(f"Error initializing Weather API: {str(e)}")
+    api_initialized = False
+    st.session_state.demo_mode = True  # Automatically enable demo mode if API initialization fails
 
 # Header
 st.title("🌤️ Weather Dashboard")
+
+# Show message if in demo mode
+if st.session_state.demo_mode:
+    st.markdown("""
+    <div style="background-color:#F0F2F6;padding:15px;border-radius:10px;margin-bottom:15px;">
+        <h3 style="margin-top:0;color:#FF4B4B;">⚠️ Demo Mode Active</h3>
+        <p>This dashboard is currently displaying <b>simulated weather data</b> because:</p>
+        <ul>
+            <li>Your OpenWeather API key may still be in the activation process (can take up to 2 hours)</li>
+            <li>Or demo mode was manually enabled for testing</li>
+        </ul>
+        <p>To use real weather data, please ensure your API key is active and disable demo mode in the sidebar.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+# Note about free API plan limitations
+st.info("""
+**Free API Plan Information**  
+This dashboard uses the OpenWeatherMap free plan which includes:
+- Current weather data
+- 5-day forecast with 3-hour step
+- Limited to 60 calls per minute
+
+The data is refreshed each time you search.
+""")
 
 # Sidebar for controls
 with st.sidebar:
@@ -50,16 +203,54 @@ with st.sidebar:
 
     # Show last update time
     st.write(f"Last updated: {st.session_state.last_update.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Demo mode option - only show if API is not initialized
+    if not api_initialized:
+        st.warning("⚠️ **API Key Not Active**")
+        st.markdown("""
+        Your OpenWeather API key may not be active yet. New API keys can take up to 2 hours to activate.
+        
+        The dashboard is running in demo mode with simulated data.
+        """)
+        demo_enabled = True
+    else:
+        # Allow toggling demo mode if API is working
+        demo_enabled = st.checkbox("Enable Demo Mode", value=st.session_state.demo_mode, 
+                                help="Use simulated data instead of real weather data (useful for testing)")
+        
+        if demo_enabled != st.session_state.demo_mode:
+            st.session_state.demo_mode = demo_enabled
+            # Force refresh with new mode
+            st.rerun()
+    
+    # Add information about API key activation
+    st.info("""
+    **🔑 About OpenWeather API Keys**
+    
+    New API keys can take up to 2 hours to activate.
+    If you're experiencing "Invalid API key" errors, please wait and try again later.
+    
+    Test your API key with the button in the "API Key Status" section.
+    """)
 
 # Main content
 if search_button or 'weather_data' not in st.session_state:
     with st.spinner("Fetching weather data..."):
         try:
-            # Get current weather
-            current_weather = weather_api.get_current_weather(city_name, st.session_state.unit)
-            
-            # Get forecast
-            forecast = weather_api.get_forecast(city_name, st.session_state.unit)
+            # Check if in demo mode or API failed
+            if st.session_state.demo_mode or not api_initialized:
+                # Show notification that we're using demo data
+                if not st.session_state.get('demo_notification_shown', False):
+                    st.info("🧪 Using demo data - weather information is simulated")
+                    st.session_state.demo_notification_shown = True
+                
+                # Get simulated weather data
+                current_weather = get_demo_weather(city_name, st.session_state.unit)
+                forecast = get_demo_forecast(city_name, st.session_state.unit)
+            else:
+                # Get real weather data from API
+                current_weather = weather_api.get_current_weather(city_name, st.session_state.unit)
+                forecast = weather_api.get_forecast(city_name, st.session_state.unit)
             
             # Store in session state
             st.session_state.weather_data = current_weather
@@ -68,7 +259,25 @@ if search_button or 'weather_data' not in st.session_state:
             
         except Exception as e:
             st.error(f"Error fetching weather data: {str(e)}")
-            if 'weather_data' not in st.session_state:
+            
+            # If API is failing but we're not in demo mode yet, switch to demo mode
+            if not st.session_state.demo_mode and 'Invalid API key' in str(e):
+                st.warning("Switching to demo mode due to API key issues")
+                st.session_state.demo_mode = True
+                
+                # Get simulated weather data as a fallback
+                current_weather = get_demo_weather(city_name, st.session_state.unit)
+                forecast = get_demo_forecast(city_name, st.session_state.unit)
+                
+                # Store in session state
+                st.session_state.weather_data = current_weather
+                st.session_state.forecast_data = forecast
+                st.session_state.last_update = datetime.datetime.now()
+                
+                # Show info about demo mode
+                st.info("🧪 Using demo data - weather information is simulated")
+                st.session_state.demo_notification_shown = True
+            elif 'weather_data' not in st.session_state:
                 st.stop()
 
 # Display current weather
