@@ -23,7 +23,10 @@ class WeatherAPI:
         st.sidebar.expander("API Key Status").write(f"""
         API Key: {'*' * (len(self.api_key) - 4) + self.api_key[-4:] if self.api_key else 'Not provided'}
         
-        **Note:** New OpenWeather API keys may take up to 2 hours to activate after creation.
+        This dashboard uses the OpenWeatherMap free plan which includes:
+        - Current weather data
+        - 5-day forecast with 3-hour step
+        - Limited to 60 calls per minute
         """)
         
         # Add a test API endpoint button

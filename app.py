@@ -205,14 +205,11 @@ with st.sidebar:
         """)
         demo_enabled = True
     else:
-        # Allow toggling demo mode if API is working
-        demo_enabled = st.checkbox("Enable Demo Mode", value=st.session_state.demo_mode, 
-                                help="Use simulated data instead of real weather data (useful for testing)")
+        # API is working properly, disable demo mode
+        demo_enabled = False
         
-        if demo_enabled != st.session_state.demo_mode:
+        if st.session_state.demo_mode != demo_enabled:
             st.session_state.demo_mode = demo_enabled
-            # Force refresh with new mode
-            st.rerun()
     
     # Removed information about API key activation
 
