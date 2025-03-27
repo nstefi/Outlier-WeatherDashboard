@@ -6,6 +6,9 @@ from PIL import Image
 import pandas as pd
 import random
 import os
+import qrcode
+import io
+import socket
 
 from weather import WeatherAPI
 from utils import get_weather_icon, temperature_color, wind_direction_icon
@@ -16,6 +19,44 @@ st.set_page_config(
     page_icon="🌤️",
     layout="wide",
 )
+
+# Function to generate QR code for the dashboard URL
+def generate_qr_code():
+    """
+    Generate a QR code for the current app URL
+    """
+    # Get the Replit hostname or use a default localhost if running locally
+    hostname = os.environ.get("REPL_SLUG", "localhost")
+    port = os.environ.get("PORT", "5000")
+    
+    # Construct the URL (Replit URLs are in the format <repl-name>.<username>.repl.co)
+    if "REPLIT_DB_URL" in os.environ:
+        # Running on Replit
+        username = os.environ.get("REPL_OWNER", "user")
+        url = f"https://{hostname}.{username}.repl.co"
+    else:
+        # Running locally or somewhere else
+        url = f"http://{hostname}:{port}"
+    
+    # Generate QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    # Create an image from the QR Code
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Convert the PIL image to bytes
+    img_byte_array = io.BytesIO()
+    img.save(img_byte_array, format='PNG')
+    img_byte_array = img_byte_array.getvalue()
+    
+    return img_byte_array, url
 
 # Initialize session state variables
 if 'unit' not in st.session_state:
@@ -194,6 +235,11 @@ with st.sidebar:
 
     # Show last update time
     st.write(f"Last updated: {st.session_state.last_update.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # Generate and display QR code for mobile access
+    qr_img, qr_url = generate_qr_code()
+    st.markdown("<p style='color: #FF4B4B; margin-top: 15px; margin-bottom: 5px; font-weight: 500;'>Scan QR code below to check the app on your mobile:</p>", unsafe_allow_html=True)
+    st.image(qr_img, width=150)
     
     # Demo mode option - only show if API is not initialized
     if not api_initialized:
